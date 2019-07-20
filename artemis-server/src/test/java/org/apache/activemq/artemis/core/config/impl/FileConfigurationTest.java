@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.BroadcastGroupConfiguration;
-import org.apache.activemq.artemis.api.core.DeadLetterAddressRoutingType;
 import org.apache.activemq.artemis.api.core.DiscoveryGroupConfiguration;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -340,7 +339,7 @@ public class FileConfigurationTest extends ConfigurationImplTest {
       assertTrue(conf.getAddressesSettings().get("a2") != null);
 
       assertEquals("DLA.x1", conf.getAddressesSettings().get("#").resolveDealLetterAddress(new SimpleString("x1")).toString());
-      assertEquals(DeadLetterAddressRoutingType.CORRESPONDING_QUEUE, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateRoutingType());
+      assertEquals(RoutingType.ANYCAST, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateRoutingType());
       assertEquals(true, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateQueueDurable());
       assertEquals(false, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateQueueTemporary());
       assertEquals("a1.1", conf.getAddressesSettings().get("a1").getDeadLetterAddress().toString());

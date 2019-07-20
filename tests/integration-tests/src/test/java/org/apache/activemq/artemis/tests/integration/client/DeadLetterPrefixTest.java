@@ -17,7 +17,6 @@
 package org.apache.activemq.artemis.tests.integration.client;
 
 import org.apache.activemq.artemis.api.core.ActiveMQException;
-import org.apache.activemq.artemis.api.core.DeadLetterAddressRoutingType;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -102,12 +101,12 @@ public class DeadLetterPrefixTest extends Assert {
    }
 
    @Test
-   public void testNonJmsWithAnycastWitMultipleQueues() throws Exception {
+   public void testFqqnDlqDeliveryWorking() throws Exception {
       configuration.addAddressConfiguration(new CoreAddressConfiguration().setName("a1")
               .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
               .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
       );
-      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setDeadLetterAddressAutoCreateRoutingType(DeadLetterAddressRoutingType.CORRESPONDING_QUEUE).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(true).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
 
       embeddedActiveMQ.setConfiguration(configuration);

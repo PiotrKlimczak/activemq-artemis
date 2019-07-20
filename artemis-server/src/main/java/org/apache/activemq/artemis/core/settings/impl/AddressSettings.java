@@ -20,7 +20,6 @@ import java.io.Serializable;
 
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.ActiveMQBuffer;
-import org.apache.activemq.artemis.api.core.DeadLetterAddressRoutingType;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
@@ -136,7 +135,7 @@ public class AddressSettings implements Mergeable<AddressSettings>, Serializable
 
    private SimpleString deadLetterAddressPrefix = null;
 
-   private DeadLetterAddressRoutingType deadLetterAddressAutoCreateRoutingType = null;
+   private RoutingType deadLetterAddressAutoCreateRoutingType = null;
 
    private Boolean deadLetterAddressAutoCreateQueueDurable = null;
 
@@ -600,11 +599,11 @@ public class AddressSettings implements Mergeable<AddressSettings>, Serializable
       return this;
    }
 
-   public DeadLetterAddressRoutingType getDeadLetterAddressAutoCreateRoutingType() {
+   public RoutingType getDeadLetterAddressAutoCreateRoutingType() {
       return deadLetterAddressAutoCreateRoutingType;
    }
 
-   public AddressSettings setDeadLetterAddressAutoCreateRoutingType(final DeadLetterAddressRoutingType deadLetterAddressAutoCreateRoutingType) {
+   public AddressSettings setDeadLetterAddressAutoCreateRoutingType(final RoutingType deadLetterAddressAutoCreateRoutingType) {
       this.deadLetterAddressAutoCreateRoutingType = deadLetterAddressAutoCreateRoutingType;
       return this;
    }
@@ -1114,7 +1113,7 @@ public class AddressSettings implements Mergeable<AddressSettings>, Serializable
       }
 
       if (buffer.readableBytes() > 0) {
-         deadLetterAddressAutoCreateRoutingType = DeadLetterAddressRoutingType.getType(buffer.readByte());
+         deadLetterAddressAutoCreateRoutingType = RoutingType.getType(buffer.readByte());
       }
 
       if (buffer.readableBytes() > 0) {

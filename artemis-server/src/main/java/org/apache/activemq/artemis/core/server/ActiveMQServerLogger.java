@@ -2013,13 +2013,8 @@ public interface ActiveMQServerLogger extends BasicLogger {
       format = Message.Format.MESSAGE_FORMAT)
    void messageWithHeaderTooLarge(Long messageID, String loggerClass);
 
-   @LogMessage(level = Logger.Level.WARN)
-   @Message(id = 224100, value = "Cannot create Dead Letter Address {0} with CORRESPONDING_QUEUE routing when auto-create-queues is disabled, using default MULTICAST instead",
-      format = Message.Format.MESSAGE_FORMAT)
-   void usingAsOriginDlaWithoutAutoCreateQueues(String deadLetterAddress);
-
    @LogMessage(level = Logger.Level.INFO)
-   @Message(id = 224101, value = "Auto-creating Dead Letter Address {0} with routing {1}, for queue {2} with Dead Letter Queue auto-created {3}",
+   @Message(id = 224100, value = "Auto-creating Dead Letter Address {0} with routing {1}, for queue {2} with Dead Letter Queue auto-created {3}",
       format = Message.Format.MESSAGE_FORMAT)
    void autoCreatingDeadLetterAddress(String deadLetterAddress, String routing, String queue, boolean dlqCreated);
 }

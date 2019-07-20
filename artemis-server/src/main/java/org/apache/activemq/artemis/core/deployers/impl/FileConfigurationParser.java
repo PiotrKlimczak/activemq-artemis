@@ -36,7 +36,6 @@ import org.apache.activemq.artemis.ArtemisConstants;
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.BroadcastEndpointFactory;
 import org.apache.activemq.artemis.api.core.BroadcastGroupConfiguration;
-import org.apache.activemq.artemis.api.core.DeadLetterAddressRoutingType;
 import org.apache.activemq.artemis.api.core.DiscoveryGroupConfiguration;
 import org.apache.activemq.artemis.api.core.JGroupsFileBroadcastEndpointFactory;
 import org.apache.activemq.artemis.api.core.Pair;
@@ -1180,7 +1179,7 @@ public final class FileConfigurationParser extends XMLConfigurationUtil {
          Node child = children.item(i);
          String childName = child.getNodeName();
          if (DEAD_LETTER_ADDRESS_AUTO_CREATE_ROUTING_TYPE_ATTR_NAME.equals(childName)) {
-            addressSettings.setDeadLetterAddressAutoCreateRoutingType(DeadLetterAddressRoutingType.valueOf(getTrimmedTextContent(child)));
+            addressSettings.setDeadLetterAddressAutoCreateRoutingType(RoutingType.valueOf(getTrimmedTextContent(child)));
          } else if (DEAD_LETTER_ADDRESS_AUTO_CREATE_DURABLE_NAME.equals(childName)) {
             addressSettings.setDeadLetterAddressAutoCreateQueueDurable(XMLUtil.parseBoolean(child));
          } else if (DEAD_LETTER_ADDRESS_AUTO_CREATE_TEMPORARY_NAME.equals(childName)) {

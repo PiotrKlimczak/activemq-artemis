@@ -2931,10 +2931,10 @@
          </xsd:documentation>
       </xsd:annotation>
       <xsd:all>
-         <xsd:element name="routing-type" minOccurs="0" type="dla-routing-type" default="MULTICAST">
+         <xsd:element name="routing-type" minOccurs="0" type="routing-type">
             <xsd:annotation>
                <xsd:documentation>
-                  Default routing type for auto-created addresses- if enabled address auto-creation in address settings for DLA
+                  Default routing type for auto-created addresses- if enabled address auto-creation in address settings for DLA. If null, then origin queue routing type will be used.
                </xsd:documentation>
             </xsd:annotation>
          </xsd:element>
@@ -3511,21 +3511,6 @@
       <xsd:restriction base="xsd:string">
          <xsd:enumeration value="ANYCAST"/>
          <xsd:enumeration value="MULTICAST"/>
-      </xsd:restriction>
-   </xsd:simpleType>
-
-   <xsd:simpleType name="dla-routing-type">
-      <xsd:restriction base="xsd:string">
-         <xsd:enumeration value="ANYCAST"/>
-         <xsd:enumeration value="MULTICAST"/>
-         <xsd:enumeration value="CORRESPONDING_QUEUE">
-            <xsd:annotation>
-               <xsd:documentation>
-                  Special routing method which ensures that DLA route will route the message to the corresponding Dead
-                  Letter Queue, instead of all (MULTIAST) or any (ANYCAST) if more than one available.
-               </xsd:documentation>
-            </xsd:annotation>
-         </xsd:enumeration>
       </xsd:restriction>
    </xsd:simpleType>
 

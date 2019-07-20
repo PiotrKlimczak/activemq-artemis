@@ -378,8 +378,9 @@
 
       <address-settings>
          <address-setting match="#">
+
             <dead-letter-address-auto-create prefix="DLA.">
-               <routing-type>CORRESPONDING_QUEUE</routing-type>
+               <routing-type>ANYCAST</routing-type>
                <durable>true</durable>
                <temporary>false</temporary>
             </dead-letter-address-auto-create>

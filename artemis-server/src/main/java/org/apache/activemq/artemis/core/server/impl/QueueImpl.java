@@ -44,7 +44,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.ActiveMQException;
 import org.apache.activemq.artemis.api.core.ActiveMQNullRefException;
-import org.apache.activemq.artemis.api.core.DeadLetterAddressRoutingType;
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.api.core.Pair;
 import org.apache.activemq.artemis.api.core.RoutingType;
@@ -97,6 +96,7 @@ import org.apache.activemq.artemis.core.transaction.impl.BindingsTransactionImpl
 import org.apache.activemq.artemis.core.transaction.impl.TransactionImpl;
 import org.apache.activemq.artemis.spi.core.protocol.RemotingConnection;
 import org.apache.activemq.artemis.utils.BooleanUtil;
+import org.apache.activemq.artemis.utils.CompositeAddress;
 import org.apache.activemq.artemis.utils.Env;
 import org.apache.activemq.artemis.utils.ReferenceCounter;
 import org.apache.activemq.artemis.utils.ReusableLatch;
@@ -3146,8 +3146,15 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          }
 
          if (dlaExists) {
-            ActiveMQServerLogger.LOGGER.messageExceededMaxDeliverySendtoDLA(ref, deadLetterAddress, name);
-            move(tx, deadLetterAddress, null, ref, false, AckReason.KILLED, null);
+            boolean isAutoCreatedDla = as != null && as.getDeadLetterAddressPrefix() != null;
+
+            SimpleString dlaDestination = deadLetterAddress;
+            if (isAutoCreatedDla) {
+               dlaDestination = CompositeAddress.toFullyQualified(deadLetterAddress, dlqName);
+            }
+
+            ActiveMQServerLogger.LOGGER.messageExceededMaxDeliverySendtoDLA(ref, dlaDestination, name);
+            move(tx, dlaDestination, null, ref, false, AckReason.KILLED, null);
 
             return true;
          } else {
@@ -3171,31 +3178,21 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          }
 
          String originQueueName = ref.getQueue().getName().toString();
-         RoutingType routingType = ref.getQueue().getRoutingType();
-         if (as.getDeadLetterAddressAutoCreateRoutingType() != null && as.getDeadLetterAddressAutoCreateRoutingType() != DeadLetterAddressRoutingType.CORRESPONDING_QUEUE) {
-            routingType = RoutingType.getType(as.getDeadLetterAddressAutoCreateRoutingType().getType());
+         RoutingType routingType = as.getDeadLetterAddressAutoCreateRoutingType();
+
+         if (routingType == null) {
+            routingType = ref.getQueue().getRoutingType();
          }
 
          if (dlas.isAutoCreateQueues()) {
-            SimpleString asOriginFilter = null;
-
-            if (as.getDeadLetterAddressAutoCreateRoutingType() == DeadLetterAddressRoutingType.CORRESPONDING_QUEUE) {
-               // Delivering to corresponding DLQ by filtering origin queue name
-               asOriginFilter = new SimpleString(Message.HDR_ORIGINAL_QUEUE.toString() + " = '" + originQueueName + "'");
-            }
-
-            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), as.getDeadLetterAddressAutoCreateRoutingType().name(), originQueueName, true);
+            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, true);
 
             // Setting only queue specific config as rest will be taken from matching AddressSettings if found, otherwise defaults will be applied
-            server.createQueue(deadLetterAddress, routingType, dlqName, asOriginFilter, as.getDeadLetterAddressAutoCreateQueueDurable(), as.getDeadLetterAddressAutoCreateQueueTemporary());
+            server.createQueue(deadLetterAddress, routingType, dlqName, null, as.getDeadLetterAddressAutoCreateQueueDurable(), as.getDeadLetterAddressAutoCreateQueueTemporary());
 
             return true;
          } else if (dlas.isAutoCreateAddresses()) {
-            if (as.getDeadLetterAddressAutoCreateRoutingType() == DeadLetterAddressRoutingType.CORRESPONDING_QUEUE) {
-               ActiveMQServerLogger.LOGGER.usingAsOriginDlaWithoutAutoCreateQueues(deadLetterAddress.toString());
-            }
-
-            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), as.getDeadLetterAddressAutoCreateRoutingType().name(), originQueueName, false);
+            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, false);
             server.addOrUpdateAddressInfo(new AddressInfo(deadLetterAddress, routingType).setAutoCreated(true));
 
             return true;
