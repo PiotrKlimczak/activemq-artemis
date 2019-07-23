@@ -3168,7 +3168,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
       return false;
    }
 
-   private boolean tryCreateDeadLetterAddress(MessageReference ref, SimpleString deadLetterAddress, AddressSettings as, SimpleString dlqName, AddressSettings dlas) throws Exception {
+   private boolean tryCreateDeadLetterAddress(MessageReference ref, SimpleString deadLetterAddress, AddressSettings originAS, SimpleString dlqName, AddressSettings dlas) throws Exception {
       synchronized (this) {
          Bindings bindingList = postOffice.lookupBindingsForAddress(deadLetterAddress);
 
@@ -3178,7 +3178,7 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          }
 
          String originQueueName = ref.getQueue().getName().toString();
-         RoutingType routingType = as.getDeadLetterAddressAutoCreateRoutingType();
+         RoutingType routingType = originAS.getDeadLetterAddressAutoCreateRoutingType();
 
          if (routingType == null) {
             routingType = ref.getQueue().getRoutingType();
@@ -3186,12 +3186,15 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
 
          if (dlas.isAutoCreateQueues()) {
             ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, true);
+            boolean durable = originAS.isDeadLetterAddressAutoCreateQueueDurable() != null ? originAS.isDeadLetterAddressAutoCreateQueueDurable() : ref.getQueue().isDurable();
+            boolean temporary = originAS.isDeadLetterAddressAutoCreateQueueTemporary() != null ? originAS.isDeadLetterAddressAutoCreateQueueTemporary() : ref.getQueue().isTemporary();
 
             // Setting only queue specific config as rest will be taken from matching AddressSettings if found, otherwise defaults will be applied
-            server.createQueue(deadLetterAddress, routingType, dlqName, null, as.getDeadLetterAddressAutoCreateQueueDurable(), as.getDeadLetterAddressAutoCreateQueueTemporary());
+            server.createQueue(deadLetterAddress, routingType, dlqName, null, durable, temporary);
 
             return true;
          } else if (dlas.isAutoCreateAddresses()) {
+            //TODO PK remove and add checks to avoid such config issue
             ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, false);
             server.addOrUpdateAddressInfo(new AddressInfo(deadLetterAddress, routingType).setAutoCreated(true));
 

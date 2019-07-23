@@ -31,6 +31,7 @@ import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.activemq.artemis.tests.util.Wait;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,8 +60,7 @@ public class DeadLetterPrefixTest extends Assert {
 
    @Test
    public void testNonJmsNoQueueAutoCreation() throws Exception {
-      configuration.addAddressConfiguration(new CoreAddressConfiguration().setName("a1")
-              .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1")));
+      configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
       configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(false));
 
@@ -79,9 +79,37 @@ public class DeadLetterPrefixTest extends Assert {
    }
 
    @Test
+   public void testExpiredMessagesGoesToDlq() throws Exception {
+      configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
+      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
+      configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(false));
+      configuration.setMessageExpiryScanPeriod(100);
+
+      embeddedActiveMQ.setConfiguration(configuration);
+      embeddedActiveMQ.start();
+
+      ClientSessionFactory factory = locator.createSessionFactory();
+      ClientSession session = factory.createSession(false, true, false);
+
+      Assert.assertTrue(embeddedActiveMQ.getActiveMQServer().locateQueue(new SimpleString("q1")).getMessagesExpired() == 0);
+
+      ClientProducer producer = session.createProducer("a1");
+      producer.send(session.createMessage(true).writeBodyBufferString("Test content").setExpiration(10));
+      producer.close();
+      session.commit();
+
+      Assert.assertTrue(Wait.waitFor(() -> embeddedActiveMQ.getActiveMQServer().locateQueue(new SimpleString("q1")).getMessagesExpired() == 1, 2000, 100));
+
+      Thread.sleep(1000);
+
+//      assertEquals("Test content", getNextMessage(factory, "q1", true));
+      assertNotNull(embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLA.a1")));
+      assertEquals(0, embeddedActiveMQ.getActiveMQServer().getTotalMessageCount());
+   }
+
+   @Test
    public void testNonJms() throws Exception {
-      configuration.addAddressConfiguration(new CoreAddressConfiguration().setName("a1")
-              .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1")));
+      configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
       configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(true));
 
@@ -100,14 +128,34 @@ public class DeadLetterPrefixTest extends Assert {
       assertEquals(0, embeddedActiveMQ.getActiveMQServer().getTotalMessageCount());
    }
 
+//   @Test
+//   public void testQueueConfigTakenFromOriginIfNotDefined() throws Exception {
+//      configuration.addAddressConfiguration(new CoreAddressConfiguration().setName("a1")
+//              .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
+//              .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
+//      );
+//      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+//      configuration.addAddressesSetting("DLA.#", new AddressSettings().setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+//
+//      embeddedActiveMQ.setConfiguration(configuration);
+//      embeddedActiveMQ.start();
+//
+//      ClientSessionFactory factory = locator.createSessionFactory();
+//      ClientSession session = factory.createSession(false, true, false);
+//
+//      ClientProducer producer = session.createProducer("a1");
+//      producer.send(session.createMessage(false).writeBodyBufferString("Test content1"));
+//      session.commit();
+//      session.close();
+//   }
+
    @Test
    public void testFqqnDlqDeliveryWorking() throws Exception {
-      configuration.addAddressConfiguration(new CoreAddressConfiguration().setName("a1")
+      configuration
               .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
-              .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
-      );
+              .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
       configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
-      configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(true).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+      configuration.addAddressesSetting("DLA.#", new AddressSettings().setMaxDeliveryAttempts(1).setQueuePrefetch(1));
 
       embeddedActiveMQ.setConfiguration(configuration);
       embeddedActiveMQ.start();

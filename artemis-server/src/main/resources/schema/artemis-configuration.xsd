@@ -1054,8 +1054,12 @@
                </xsd:documentation>
             </xsd:annotation>
             <xsd:complexType>
-               <xsd:sequence>
-                  <xsd:element ref="address-setting" maxOccurs="unbounded" minOccurs="0"/>
+               <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                  <xsd:choice>
+                     <xsd:element ref="address-setting" maxOccurs="unbounded" minOccurs="0"/>
+                     <xsd:element ref="dla-address-setting" maxOccurs="unbounded" minOccurs="0"/>
+                     <xsd:element ref="expiry-address-setting" maxOccurs="unbounded" minOccurs="0"/>
+                  </xsd:choice>
                </xsd:sequence>
                <xsd:attributeGroup ref="xml:specialAttrs"/>
             </xsd:complexType>
@@ -2964,462 +2968,486 @@
 
    <xsd:element name="address-setting">
       <xsd:complexType>
-         <xsd:annotation>
-            <xsd:documentation>
-               Complex type element to configure an address.
-            </xsd:documentation>
-         </xsd:annotation>
-         <xsd:all>
-            <xsd:element maxOccurs="1" minOccurs="0" name="dead-letter-address" type="xsd:string">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the address to send dead messages to
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-            <xsd:element maxOccurs="1" minOccurs="0" name="dead-letter-address-auto-create" type="dead-letter-address-auto-create">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the prefix of the address to send dead messages to
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+         <xsd:complexContent>
+            <xsd:extension base="address-setting-base">
+               <xsd:all>
+                  <xsd:element maxOccurs="1" minOccurs="0" name="dead-letter-address" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           the address to send dead messages to
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="1" minOccurs="0" name="dead-letter-address-auto-create" type="dead-letter-address-auto-create">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           the prefix of the address to send dead messages to
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="expiry-address" type="xsd:string" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the address to send expired messages to
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+                  <xsd:element name="auto-create-jms-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           DEPRECATED: whether or not to automatically create JMS queues when a producer sends or a consumer connects to a
+                           queue
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="expiry-delay" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     Overrides the expiration time for messages using the default value for expiration time. "-1"
-                     disables this setting.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+                  <xsd:element name="auto-delete-jms-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           DEPRECATED: whether or not to delete auto-created JMS queues when the queue has 0 consumers and 0 messages
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="redelivery-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the time (in ms) to wait before redelivering a cancelled message.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+                  <xsd:element name="auto-create-jms-topics" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           DEPRECATED: whether or not to automatically create JMS topics when a producer sends or a consumer subscribes to
+                           a topic
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="redelivery-delay-multiplier" type="xsd:double" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     multiplier to apply to the "redelivery-delay"
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+                  <xsd:element name="auto-delete-jms-topics" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           DEPRECATED: whether or not to delete auto-created JMS topics when the last subscription is closed
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="max-redelivery-delay" type="xsd:long" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     Maximum value for the redelivery-delay
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
+                  <xsd:element name="auto-create-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           whether or not to automatically create a queue when a client sends a message to or attempts to consume
+                           a message from a queue
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
 
-            <xsd:element name="max-delivery-attempts" type="xsd:int" default="10" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how many times to attempt to deliver a message before sending to dead letter address
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="max-size-bytes" type="xsd:string" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the maximum size (in bytes) for an address (-1 means no limits). This is used in PAGING, BLOCK and
-                     FAIL policies. Supports byte notation like "K", "Mb", "GB", etc.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="max-size-bytes-reject-threshold" type="xsd:long" default="-1" maxOccurs="1"
-                         minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     used with the address full BLOCK policy, the maximum size (in bytes) an address can reach before
-                     messages start getting rejected. Works in combination with max-size-bytes for AMQP protocol only.
-                     Default = -1 (no limit).
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="page-size-bytes" type="xsd:string" default="10485760" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     The page size (in bytes) to use for an address. Supports byte notation like "K", "Mb",
-                     "GB", etc.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="page-max-cache-size" default="5" type="xsd:int" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     Number of paging files to cache in memory to avoid IO during paging navigation
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="address-full-policy" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     what happens when an address where "max-size-bytes" is specified becomes full
-                  </xsd:documentation>
-               </xsd:annotation>
-               <xsd:simpleType>
-                  <xsd:restriction base="xsd:string">
-                     <xsd:enumeration value="DROP"/>
-                     <xsd:enumeration value="FAIL"/>
-                     <xsd:enumeration value="PAGE"/>
-                     <xsd:enumeration value="BLOCK"/>
-                  </xsd:restriction>
-               </xsd:simpleType>
-            </xsd:element>
-
-            <xsd:element name="message-counter-history-day-limit" type="xsd:int" default="0" maxOccurs="1"
-                         minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how many days to keep message counter history for this address
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="last-value-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     This is deprecated please use default-last-value-queue instead.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-last-value-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether to treat the queues under the address as a last value queues by default
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-last-value-key" type="xsd:string" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the property to use as the key for a last value queue by default
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-non-destructive" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether the queue should be non-destructive by default
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-exclusive-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether to treat the queues under the address as exclusive queues by default
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-group-rebalance" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether to rebalance groups when a consumer is added
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-group-buckets" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     number of buckets to use for grouping, -1 (default) is unlimited and uses the raw group, 0 disables message groups.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-group-first-key" type="xsd:string" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     key used to mark a message is first in a group for a consumer
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-consumers-before-dispatch" type="xsd:int" default="0" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the default number of consumers needed before dispatch can start for queues under the address.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-delay-before-dispatch" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the default delay (in milliseconds) to wait before dispatching if number of consumers before
-                     dispatch is not met for queues under the address.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="redistribution-delay" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how long (in ms) to wait after the last consumer is closed on a queue before redistributing
-                     messages.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="send-to-dla-on-no-route" type="xsd:boolean" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     if there are no queues matching this address, whether to forward message to DLA (if it exists for
-                     this address)
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="slow-consumer-threshold" type="xsd:long" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     The minimum rate of message consumption allowed before a consumer is considered "slow." Measured
-                     in messages-per-second.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="slow-consumer-policy" default="NOTIFY" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     what happens when a slow consumer is identified
-                  </xsd:documentation>
-               </xsd:annotation>
-               <xsd:simpleType>
-                  <xsd:restriction base="xsd:string">
-                     <xsd:enumeration value="KILL"/>
-                     <xsd:enumeration value="NOTIFY"/>
-                  </xsd:restriction>
-               </xsd:simpleType>
-            </xsd:element>
-
-            <xsd:element name="slow-consumer-check-period" type="xsd:long" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     How often to check for slow consumers on a particular queue. Measured in seconds.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-create-jms-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     DEPRECATED: whether or not to automatically create JMS queues when a producer sends or a consumer connects to a
-                     queue
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-jms-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     DEPRECATED: whether or not to delete auto-created JMS queues when the queue has 0 consumers and 0 messages
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-create-jms-topics" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     DEPRECATED: whether or not to automatically create JMS topics when a producer sends or a consumer subscribes to
-                     a topic
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-jms-topics" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     DEPRECATED: whether or not to delete auto-created JMS topics when the last subscription is closed
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-create-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether or not to automatically create a queue when a client sends a message to or attempts to consume
-                     a message from a queue
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether or not to delete auto-created queues when the queue has 0 consumers and 0 messages
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-created-queues" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether or not to delete created queues when the queue has 0 consumers and 0 messages
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-queues-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how long to wait (in milliseconds) before deleting auto-created queues after the queue has 0
-                     consumers.
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-queues-message-count" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the message count the queue must be at or below before it can be evaluated to be auto deleted, 0 waits until empty queue (default) and -1 disables this check.                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="config-delete-queues" default="OFF" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                      What to do when a queue is no longer in broker.xml.
-                     OFF = will do nothing queues will remain,
-                     FORCE = delete queues even if messages remaining.
-                  </xsd:documentation>
-               </xsd:annotation>
-               <xsd:simpleType>
-                  <xsd:restriction base="xsd:string">
-                     <xsd:enumeration value="OFF"/>
-                     <xsd:enumeration value="FORCE"/>
-                  </xsd:restriction>
-               </xsd:simpleType>
-            </xsd:element>
-
-            <xsd:element name="auto-create-addresses" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether or not to automatically create addresses when a client sends a message to or attempts to
-                     consume a message from a queue mapped to an address that doesn't exist
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-addresses" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     whether or not to delete auto-created addresses when it no longer has any queues
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="auto-delete-addresses-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how long to wait (in milliseconds) before deleting auto-created addresses after they no longer
-                     have any queues
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="config-delete-addresses" default="OFF" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     What to do when an address is no longer in broker.xml.
-                     OFF = will do nothing addresses will remain,
-                     FORCE = delete address and its queues even if messages remaining.
-                  </xsd:documentation>
-               </xsd:annotation>
-               <xsd:simpleType>
-                  <xsd:restriction base="xsd:string">
-                     <xsd:enumeration value="OFF"/>
-                     <xsd:enumeration value="FORCE"/>
-                  </xsd:restriction>
-               </xsd:simpleType>
-            </xsd:element>
-
-            <xsd:element name="management-browse-page-size" type="xsd:int" default="200" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     how many message a management resource can browse
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-purge-on-no-consumers" type="xsd:boolean" default="false" maxOccurs="1"
-                         minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     purge the contents of the queue once there are no consumers
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-max-consumers" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the maximum number of consumers allowed on this queue at any one time
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-queue-routing-type" type="routing-type" default="MULTICAST" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the routing-type used on auto-created queues
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-address-routing-type" type="routing-type" default="MULTICAST" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the routing-type used on auto-created addresses
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-
-            <xsd:element name="default-consumer-window-size" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
-               <xsd:annotation>
-                  <xsd:documentation>
-                     the default window size for a consumer
-                  </xsd:documentation>
-               </xsd:annotation>
-            </xsd:element>
-            
-         </xsd:all>
-
-         <xsd:attribute name="match" type="xsd:string" use="required">
-            <xsd:annotation>
-               <xsd:documentation>
-                  pattern for matching settings against addresses; can use wildards
-               </xsd:documentation>
-            </xsd:annotation>
-         </xsd:attribute>
-         <xsd:attributeGroup ref="xml:specialAttrs"/>
+                  <xsd:element name="auto-create-addresses" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           whether or not to automatically create addresses when a client sends a message to or attempts to
+                           consume a message from a queue mapped to an address that doesn't exist
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:all>
+            </xsd:extension>
+         </xsd:complexContent>
       </xsd:complexType>
    </xsd:element>
+
+   <xsd:element name="dla-address-setting">
+      <xsd:complexType>
+         <xsd:complexContent>
+            <xsd:extension base="address-setting-base"/>
+         </xsd:complexContent>
+      </xsd:complexType>
+   </xsd:element>
+
+   <xsd:element name="expiry-address-setting">
+      <xsd:complexType>
+         <xsd:complexContent>
+            <xsd:extension base="address-setting-base"/>
+         </xsd:complexContent>
+      </xsd:complexType>
+   </xsd:element>
+
+   <xsd:complexType name="address-setting-base">
+      <xsd:annotation>
+         <xsd:documentation>
+            Complex type element to configure an address.
+         </xsd:documentation>
+      </xsd:annotation>
+      <xsd:all>
+         <xsd:element name="expiry-address" type="xsd:string" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the address to send expired messages to
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="expiry-delay" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Overrides the expiration time for messages using the default value for expiration time. "-1"
+                  disables this setting.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="redelivery-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the time (in ms) to wait before redelivering a cancelled message.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="redelivery-delay-multiplier" type="xsd:double" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  multiplier to apply to the "redelivery-delay"
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="max-redelivery-delay" type="xsd:long" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Maximum value for the redelivery-delay
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="max-delivery-attempts" type="xsd:int" default="10" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how many times to attempt to deliver a message before sending to dead letter address
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="max-size-bytes" type="xsd:string" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the maximum size (in bytes) for an address (-1 means no limits). This is used in PAGING, BLOCK and
+                  FAIL policies. Supports byte notation like "K", "Mb", "GB", etc.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="max-size-bytes-reject-threshold" type="xsd:long" default="-1" maxOccurs="1"
+                      minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  used with the address full BLOCK policy, the maximum size (in bytes) an address can reach before
+                  messages start getting rejected. Works in combination with max-size-bytes for AMQP protocol only.
+                  Default = -1 (no limit).
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="page-size-bytes" type="xsd:string" default="10485760" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  The page size (in bytes) to use for an address. Supports byte notation like "K", "Mb",
+                  "GB", etc.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="page-max-cache-size" default="5" type="xsd:int" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  Number of paging files to cache in memory to avoid IO during paging navigation
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="address-full-policy" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  what happens when an address where "max-size-bytes" is specified becomes full
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+               <xsd:restriction base="xsd:string">
+                  <xsd:enumeration value="DROP"/>
+                  <xsd:enumeration value="FAIL"/>
+                  <xsd:enumeration value="PAGE"/>
+                  <xsd:enumeration value="BLOCK"/>
+               </xsd:restriction>
+            </xsd:simpleType>
+         </xsd:element>
+
+         <xsd:element name="message-counter-history-day-limit" type="xsd:int" default="0" maxOccurs="1"
+                      minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how many days to keep message counter history for this address
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="last-value-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  This is deprecated please use default-last-value-queue instead.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-last-value-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether to treat the queues under the address as a last value queues by default
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-last-value-key" type="xsd:string" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the property to use as the key for a last value queue by default
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-non-destructive" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether the queue should be non-destructive by default
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-exclusive-queue" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether to treat the queues under the address as exclusive queues by default
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-group-rebalance" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether to rebalance groups when a consumer is added
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-group-buckets" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  number of buckets to use for grouping, -1 (default) is unlimited and uses the raw group, 0 disables message groups.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-group-first-key" type="xsd:string" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  key used to mark a message is first in a group for a consumer
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-consumers-before-dispatch" type="xsd:int" default="0" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the default number of consumers needed before dispatch can start for queues under the address.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-delay-before-dispatch" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the default delay (in milliseconds) to wait before dispatching if number of consumers before
+                  dispatch is not met for queues under the address.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="redistribution-delay" type="xsd:long" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how long (in ms) to wait after the last consumer is closed on a queue before redistributing
+                  messages.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="send-to-dla-on-no-route" type="xsd:boolean" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  if there are no queues matching this address, whether to forward message to DLA (if it exists for
+                  this address)
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="slow-consumer-threshold" type="xsd:long" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  The minimum rate of message consumption allowed before a consumer is considered "slow." Measured
+                  in messages-per-second.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="slow-consumer-policy" default="NOTIFY" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  what happens when a slow consumer is identified
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+               <xsd:restriction base="xsd:string">
+                  <xsd:enumeration value="KILL"/>
+                  <xsd:enumeration value="NOTIFY"/>
+               </xsd:restriction>
+            </xsd:simpleType>
+         </xsd:element>
+
+         <xsd:element name="slow-consumer-check-period" type="xsd:long" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  How often to check for slow consumers on a particular queue. Measured in seconds.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-queues" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether or not to delete auto-created queues when the queue has 0 consumers and 0 messages
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-created-queues" type="xsd:boolean" default="false" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether or not to delete created queues when the queue has 0 consumers and 0 messages
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-queues-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how long to wait (in milliseconds) before deleting auto-created queues after the queue has 0
+                  consumers.
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-queues-message-count" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the message count the queue must be at or below before it can be evaluated to be auto deleted, 0 waits until empty queue (default) and -1 disables this check.                  </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="config-delete-queues" default="OFF" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                   What to do when a queue is no longer in broker.xml.
+                  OFF = will do nothing queues will remain,
+                  FORCE = delete queues even if messages remaining.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+               <xsd:restriction base="xsd:string">
+                  <xsd:enumeration value="OFF"/>
+                  <xsd:enumeration value="FORCE"/>
+               </xsd:restriction>
+            </xsd:simpleType>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-addresses" type="xsd:boolean" default="true" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  whether or not to delete auto-created addresses when it no longer has any queues
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="auto-delete-addresses-delay" type="xsd:long" default="0" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how long to wait (in milliseconds) before deleting auto-created addresses after they no longer
+                  have any queues
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="config-delete-addresses" default="OFF" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  What to do when an address is no longer in broker.xml.
+                  OFF = will do nothing addresses will remain,
+                  FORCE = delete address and its queues even if messages remaining.
+               </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+               <xsd:restriction base="xsd:string">
+                  <xsd:enumeration value="OFF"/>
+                  <xsd:enumeration value="FORCE"/>
+               </xsd:restriction>
+            </xsd:simpleType>
+         </xsd:element>
+
+         <xsd:element name="management-browse-page-size" type="xsd:int" default="200" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  how many message a management resource can browse
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-purge-on-no-consumers" type="xsd:boolean" default="false" maxOccurs="1"
+                      minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  purge the contents of the queue once there are no consumers
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-max-consumers" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the maximum number of consumers allowed on this queue at any one time
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-queue-routing-type" type="routing-type" default="MULTICAST" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the routing-type used on auto-created queues
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-address-routing-type" type="routing-type" default="MULTICAST" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the routing-type used on auto-created addresses
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+         <xsd:element name="default-consumer-window-size" type="xsd:int" default="-1" maxOccurs="1" minOccurs="0">
+            <xsd:annotation>
+               <xsd:documentation>
+                  the default window size for a consumer
+               </xsd:documentation>
+            </xsd:annotation>
+         </xsd:element>
+
+      </xsd:all>
+
+      <xsd:attribute name="match" type="xsd:string" use="required">
+         <xsd:annotation>
+            <xsd:documentation>
+               pattern for matching settings against addresses; can use wildards
+            </xsd:documentation>
+         </xsd:annotation>
+      </xsd:attribute>
+      <xsd:attributeGroup ref="xml:specialAttrs"/>
+   </xsd:complexType>
 
    <xsd:element name="resource-limit-setting">
       <xsd:complexType>

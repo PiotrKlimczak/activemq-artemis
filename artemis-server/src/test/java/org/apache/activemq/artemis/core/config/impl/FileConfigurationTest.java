@@ -340,8 +340,8 @@ public class FileConfigurationTest extends ConfigurationImplTest {
 
       assertEquals("DLA.x1", conf.getAddressesSettings().get("#").resolveDealLetterAddress(new SimpleString("x1")).toString());
       assertEquals(RoutingType.ANYCAST, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateRoutingType());
-      assertEquals(true, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateQueueDurable());
-      assertEquals(false, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateQueueTemporary());
+      assertEquals(true, conf.getAddressesSettings().get("#").isDeadLetterAddressAutoCreateQueueDurable());
+      assertEquals(false, conf.getAddressesSettings().get("#").isDeadLetterAddressAutoCreateQueueTemporary());
       assertEquals("a1.1", conf.getAddressesSettings().get("a1").getDeadLetterAddress().toString());
       assertEquals("a1.2", conf.getAddressesSettings().get("a1").getExpiryAddress().toString());
       assertEquals(1, conf.getAddressesSettings().get("a1").getRedeliveryDelay());
