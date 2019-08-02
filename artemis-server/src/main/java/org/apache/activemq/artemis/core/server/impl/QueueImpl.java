@@ -88,6 +88,7 @@ import org.apache.activemq.artemis.core.server.metrics.QueueMetricNames;
 import org.apache.activemq.artemis.core.settings.HierarchicalRepository;
 import org.apache.activemq.artemis.core.settings.HierarchicalRepositoryChangeListener;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.activemq.artemis.core.settings.impl.DeadLetterAddressSettings;
 import org.apache.activemq.artemis.core.settings.impl.SlowConsumerPolicy;
 import org.apache.activemq.artemis.core.transaction.Transaction;
 import org.apache.activemq.artemis.core.transaction.TransactionOperationAbstract;
@@ -2821,8 +2822,6 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    public Pair<Boolean, Boolean> checkRedelivery(final MessageReference reference,
                                   final long timeBase,
                                   final boolean ignoreRedeliveryDelay) throws Exception {
-      Message message = reference.getMessage();
-
       if (internalQueue) {
          if (logger.isTraceEnabled()) {
             logger.trace("Queue " + this.getName() + " is an internal queue, no checkRedelivery");
@@ -3061,16 +3060,26 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    }
 
    private void expire(final Transaction tx, final MessageReference ref) throws Exception {
-      SimpleString expiryAddress = addressSettingsRepository.getMatch(address.toString()).getExpiryAddress();
+      AddressSettings as = addressSettingsRepository.getMatch(address.toString());
+      SimpleString expiryAddress = as.getExpiryAddress();
+      DeadLetterAddressSettings autoCreateExpiryAddress = as.getAutoCreatedExpiryAddressSettings();
+
+      boolean expiryAddressExists = true;
 
       if (expiryAddress != null) {
          Bindings bindingList = postOffice.lookupBindingsForAddress(expiryAddress);
 
          if (bindingList == null || bindingList.getBindings().isEmpty()) {
             ActiveMQServerLogger.LOGGER.errorExpiringReferencesNoBindings(expiryAddress);
-            acknowledge(tx, ref, AckReason.EXPIRED, null);
-         } else {
-            move(expiryAddress, tx, ref, true, true);
+            expiryAddressExists = false;
+         }
+      } else if (autoCreateExpiryAddress != null) {
+         expiryAddress = as.resolveExpiryAddress(ref.getQueue().getAddress());
+         Bindings bindingList = postOffice.lookupBindingsForAddress(expiryAddress);
+         SimpleString dlqName = as.resolveExpiryAddress(ref.getQueue().getName());
+
+         if (bindingList == null || bindingList.getBindings().isEmpty() || (dlqName != null && postOffice.getMatchingQueue(dlqName, null) == null)) {
+            expiryAddressExists = createDeadLetterAddress(ref, autoCreateExpiryAddress, expiryAddress, dlqName);
          }
       } else {
          if (!printErrorExpiring) {
@@ -3079,8 +3088,15 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
             ActiveMQServerLogger.LOGGER.errorExpiringReferencesNoQueue(name);
          }
 
+         expiryAddressExists = false;
+      }
+
+      if (expiryAddressExists) {
+         move(expiryAddress, tx, ref, true, true);
+      } else {
          acknowledge(tx, ref, AckReason.EXPIRED, null);
       }
+
 
       if (server != null && server.hasBrokerMessagePlugins()) {
          ExpiryLogger expiryLogger = (ExpiryLogger)tx.getProperty(TransactionPropertyIndexes.EXPIRY_LOGGER);
@@ -3124,29 +3140,21 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
    private boolean sendToDeadLetterAddress(final Transaction tx,
                                         final MessageReference ref,
                                         final SimpleString deadLetterAddress) throws Exception {
+
       if (deadLetterAddress != null) {
          Bindings bindingList = postOffice.lookupBindingsForAddress(deadLetterAddress);
          AddressSettings as = addressSettingsRepository.getMatch(address.toString());
 
-         SimpleString dlqName = null;
-         if (as != null && as.getDeadLetterAddressPrefix() != null) {
-            dlqName = as.getDeadLetterAddressPrefix().concat(ref.getQueue().getName());
-         }
+         SimpleString dlqName = as.resolveDealLetterAddress(ref.getQueue().getName());
 
          boolean dlaExists = true;
 
          if (bindingList == null || bindingList.getBindings().isEmpty() || (dlqName != null && postOffice.getMatchingQueue(dlqName, null) == null)) {
-            dlaExists = false;
-            AddressSettings dlas = addressSettingsRepository.getMatch(deadLetterAddress.toString());
-
-            //Checking if synchronised code has a chance to succeed before we enter it for performance reasons
-            if (as != null && as.getDeadLetterAddressPrefix() != null && (dlas.isAutoCreateQueues() || dlas.isAutoCreateAddresses())) {
-               dlaExists = tryCreateDeadLetterAddress(ref, deadLetterAddress, as, dlqName, dlas);
-            }
+            dlaExists = createDeadLetterAddress(ref, as.getAutoCreatedDeadLetterAddressSettings(), deadLetterAddress, dlqName);
          }
 
          if (dlaExists) {
-            boolean isAutoCreatedDla = as != null && as.getDeadLetterAddressPrefix() != null;
+            boolean isAutoCreatedDla = as.getAutoCreatedDeadLetterAddressSettings() != null;
 
             SimpleString dlaDestination = deadLetterAddress;
             if (isAutoCreatedDla) {
@@ -3168,7 +3176,29 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
       return false;
    }
 
-   private boolean tryCreateDeadLetterAddress(MessageReference ref, SimpleString deadLetterAddress, AddressSettings originAS, SimpleString dlqName, AddressSettings dlas) throws Exception {
+   private boolean createDeadLetterAddress(MessageReference ref, DeadLetterAddressSettings autoCreateConfig, SimpleString deadLetterAddress, SimpleString dlqName) throws Exception {
+      AddressSettings dlas = addressSettingsRepository.getMatch(deadLetterAddress.toString());
+
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      //TODO Consider adding validation logic on config level, which might be difficult due to dynamic nature of destinations
+      if (dlas == null) {
+         return false;
+      }
+
       synchronized (this) {
          Bindings bindingList = postOffice.lookupBindingsForAddress(deadLetterAddress);
 
@@ -3178,30 +3208,21 @@ public class QueueImpl extends CriticalComponentImpl implements Queue {
          }
 
          String originQueueName = ref.getQueue().getName().toString();
-         RoutingType routingType = originAS.getDeadLetterAddressAutoCreateRoutingType();
+         RoutingType routingType = autoCreateConfig.getRoutingType();
 
          if (routingType == null) {
             routingType = ref.getQueue().getRoutingType();
          }
 
-         if (dlas.isAutoCreateQueues()) {
-            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, true);
-            boolean durable = originAS.isDeadLetterAddressAutoCreateQueueDurable() != null ? originAS.isDeadLetterAddressAutoCreateQueueDurable() : ref.getQueue().isDurable();
-            boolean temporary = originAS.isDeadLetterAddressAutoCreateQueueTemporary() != null ? originAS.isDeadLetterAddressAutoCreateQueueTemporary() : ref.getQueue().isTemporary();
+         ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, true);
+         boolean durable = autoCreateConfig.getDurable() != null ? autoCreateConfig.getDurable() : ref.getQueue().isDurable();
+         boolean temporary = autoCreateConfig.getTemporary() != null ? autoCreateConfig.getTemporary() : ref.getQueue().isTemporary();
 
-            // Setting only queue specific config as rest will be taken from matching AddressSettings if found, otherwise defaults will be applied
-            server.createQueue(deadLetterAddress, routingType, dlqName, null, durable, temporary);
-
-            return true;
-         } else if (dlas.isAutoCreateAddresses()) {
-            //TODO PK remove and add checks to avoid such config issue
-            ActiveMQServerLogger.LOGGER.autoCreatingDeadLetterAddress(deadLetterAddress.toString(), routingType.name(), originQueueName, false);
-            server.addOrUpdateAddressInfo(new AddressInfo(deadLetterAddress, routingType).setAutoCreated(true));
-
-            return true;
-         }
+         // Setting only queue specific config as rest will be taken from matching AddressSettings if found, otherwise defaults will be applied
+         server.createQueue(deadLetterAddress, routingType, dlqName, null, durable, temporary);
       }
-      return false;
+
+      return true;
    }
 
    private void move(final Transaction originalTX,

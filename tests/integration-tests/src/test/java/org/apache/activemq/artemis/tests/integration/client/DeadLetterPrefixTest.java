@@ -31,6 +31,7 @@ import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.activemq.artemis.core.settings.impl.DeadLetterAddressSettings;
 import org.apache.activemq.artemis.tests.util.Wait;
 import org.junit.After;
 import org.junit.Assert;
@@ -61,7 +62,7 @@ public class DeadLetterPrefixTest extends Assert {
    @Test
    public void testNonJmsNoQueueAutoCreation() throws Exception {
       configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
-      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
+      configuration.addAddressesSetting("#", new AddressSettings().setAutoCreatedDeadLetterAddressSettings(new DeadLetterAddressSettings(new SimpleString("DLA."))).setMaxDeliveryAttempts(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(false));
 
       embeddedActiveMQ.setConfiguration(configuration);
@@ -75,14 +76,15 @@ public class DeadLetterPrefixTest extends Assert {
 
       assertEquals("Test content", getNextMessage(factory, "q1", true));
       assertNotNull(embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLA.a1")));
+      assertEquals("Test content", getNextMessage(factory, "DLA.q1", false));
       assertEquals(0, embeddedActiveMQ.getActiveMQServer().getTotalMessageCount());
    }
 
    @Test
    public void testExpiredMessagesGoesToDlq() throws Exception {
       configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
-      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
-      configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(false));
+      configuration.addAddressesSetting("#", new AddressSettings().setAutoCreatedExpiryAddressSettings(new DeadLetterAddressSettings(new SimpleString("DLEA."))).setMaxDeliveryAttempts(1));
+      configuration.addAddressesSetting("DLEA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(false));
       configuration.setMessageExpiryScanPeriod(100);
 
       embeddedActiveMQ.setConfiguration(configuration);
@@ -103,14 +105,15 @@ public class DeadLetterPrefixTest extends Assert {
       Thread.sleep(1000);
 
 //      assertEquals("Test content", getNextMessage(factory, "q1", true));
-      assertNotNull(embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLA.a1")));
+      assertNotNull(embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLEA.a1")));
+      assertEquals("Test content", getNextMessage(factory, "DLEA.q1", false));
       assertEquals(0, embeddedActiveMQ.getActiveMQServer().getTotalMessageCount());
    }
 
    @Test
    public void testNonJms() throws Exception {
       configuration.addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
-      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1));
+      configuration.addAddressesSetting("#", new AddressSettings().setAutoCreatedDeadLetterAddressSettings(new DeadLetterAddressSettings(new SimpleString("DLA."))).setMaxDeliveryAttempts(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setAutoCreateAddresses(true).setAutoCreateQueues(true));
 
       embeddedActiveMQ.setConfiguration(configuration);
@@ -134,7 +137,7 @@ public class DeadLetterPrefixTest extends Assert {
 //              .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
 //              .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
 //      );
-//      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+//      configuration.addAddressesSetting("#", new AddressSettings().setPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
 //      configuration.addAddressesSetting("DLA.#", new AddressSettings().setMaxDeliveryAttempts(1).setQueuePrefetch(1));
 //
 //      embeddedActiveMQ.setConfiguration(configuration);
@@ -154,7 +157,7 @@ public class DeadLetterPrefixTest extends Assert {
       configuration
               .addQueueConfiguration(new CoreQueueConfiguration().setName("q1").setRoutingType(RoutingType.ANYCAST).setAddress("a1"))
               .addQueueConfiguration(new CoreQueueConfiguration().setName("q2").setRoutingType(RoutingType.ANYCAST).setAddress("a1"));
-      configuration.addAddressesSetting("#", new AddressSettings().setDeadLetterAddressPrefix(new SimpleString("DLA.")).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
+      configuration.addAddressesSetting("#", new AddressSettings().setAutoCreatedDeadLetterAddressSettings(new DeadLetterAddressSettings(new SimpleString("DLA."))).setMaxDeliveryAttempts(1).setQueuePrefetch(1));
       configuration.addAddressesSetting("DLA.#", new AddressSettings().setMaxDeliveryAttempts(1).setQueuePrefetch(1));
 
       embeddedActiveMQ.setConfiguration(configuration);

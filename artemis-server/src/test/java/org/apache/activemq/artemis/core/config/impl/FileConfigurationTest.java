@@ -339,9 +339,13 @@ public class FileConfigurationTest extends ConfigurationImplTest {
       assertTrue(conf.getAddressesSettings().get("a2") != null);
 
       assertEquals("DLA.x1", conf.getAddressesSettings().get("#").resolveDealLetterAddress(new SimpleString("x1")).toString());
-      assertEquals(RoutingType.ANYCAST, conf.getAddressesSettings().get("#").getDeadLetterAddressAutoCreateRoutingType());
-      assertEquals(true, conf.getAddressesSettings().get("#").isDeadLetterAddressAutoCreateQueueDurable());
-      assertEquals(false, conf.getAddressesSettings().get("#").isDeadLetterAddressAutoCreateQueueTemporary());
+      assertEquals(RoutingType.ANYCAST, conf.getAddressesSettings().get("#").getAutoCreatedDeadLetterAddressSettings().getRoutingType());
+      assertEquals(true, conf.getAddressesSettings().get("#").getAutoCreatedDeadLetterAddressSettings().getDurable());
+      assertEquals(false, conf.getAddressesSettings().get("#").getAutoCreatedDeadLetterAddressSettings().getTemporary());
+      assertEquals("EA.1", conf.getAddressesSettings().get("#").resolveExpiryAddress(new SimpleString("x1")).toString());
+      assertEquals(RoutingType.ANYCAST, conf.getAddressesSettings().get("#").getAutoCreatedExpiryAddressSettings().getRoutingType());
+      assertEquals(true, conf.getAddressesSettings().get("#").getAutoCreatedExpiryAddressSettings().getDurable());
+      assertEquals(false, conf.getAddressesSettings().get("#").getAutoCreatedExpiryAddressSettings().getTemporary());
       assertEquals("a1.1", conf.getAddressesSettings().get("a1").getDeadLetterAddress().toString());
       assertEquals("a1.2", conf.getAddressesSettings().get("a1").getExpiryAddress().toString());
       assertEquals(1, conf.getAddressesSettings().get("a1").getRedeliveryDelay());

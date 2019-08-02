@@ -38,6 +38,7 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.ActiveMQServers;
 import org.apache.activemq.artemis.core.server.Queue;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.activemq.artemis.core.settings.impl.DeadLetterAddressSettings;
 import org.apache.activemq.artemis.tests.integration.IntegrationTestLogger;
 import org.apache.activemq.artemis.tests.util.ActiveMQTestBase;
 import org.apache.activemq.artemis.utils.RandomUtil;
@@ -92,7 +93,7 @@ public class DeadLetterAddressTest extends ActiveMQTestBase {
       SimpleString dlaResolved = new SimpleString("DLA.ad1");
       SimpleString qName = new SimpleString("q1");
       SimpleString adName = new SimpleString("ad1");
-      AddressSettings addressSettings = new AddressSettings().setMaxDeliveryAttempts(1).setDeadLetterAddressPrefix(dla);
+      AddressSettings addressSettings = new AddressSettings().setMaxDeliveryAttempts(1).setAutoCreatedDeadLetterAddressSettings(new DeadLetterAddressSettings(dla));
       server.getAddressSettingsRepository().addMatch("#", addressSettings);
       SimpleString dlq = new SimpleString("DLQ1");
       clientSession.createQueue(dlaResolved, dlq, null, false);
@@ -123,7 +124,7 @@ public class DeadLetterAddressTest extends ActiveMQTestBase {
       SimpleString dla = new SimpleString("DLA");
       SimpleString qName = new SimpleString("q1");
       SimpleString adName = new SimpleString("ad1");
-      AddressSettings addressSettings = new AddressSettings().setMaxDeliveryAttempts(1).setDeadLetterAddressPrefix(dla).setDeadLetterAddress(dla);
+      AddressSettings addressSettings = new AddressSettings().setMaxDeliveryAttempts(1).setAutoCreatedDeadLetterAddressSettings(new DeadLetterAddressSettings(dla));
       server.getAddressSettingsRepository().addMatch("#", addressSettings);
       SimpleString dlq = new SimpleString("DLQ1");
       clientSession.createQueue(dla, dlq, null, false);

@@ -2635,11 +2635,14 @@ public class ActiveMQServerControlImpl extends AbstractControl implements Active
       if (addressSettings.getDeadLetterAddress() != null) {
          settings.add("DLA", addressSettings.getDeadLetterAddress().toString());
       }
-      if (addressSettings.getDeadLetterAddressPrefix() != null) {
-         settings.add("DLAPrefix", addressSettings.getDeadLetterAddressPrefix().toString());
+      if (addressSettings.getAutoCreatedDeadLetterAddressSettings() != null) {
+         settings.add("autoCreatedDeadLetterAddressSettings", addressSettings.getAutoCreatedDeadLetterAddressSettings().asJSON());
       }
       if (addressSettings.getExpiryAddress() != null) {
          settings.add("expiryAddress", addressSettings.getExpiryAddress().toString());
+      }
+      if (addressSettings.getAutoCreatedExpiryAddressSettings() != null) {
+         settings.add("autoCreatedExpiryAddressSettings", addressSettings.getAutoCreatedExpiryAddressSettings().asJSON());
       }
 
       return settings.add("expiryDelay", addressSettings.getExpiryDelay())

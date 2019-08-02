@@ -20,7 +20,7 @@
             targetNamespace="urn:activemq:core"
             attributeFormDefault="unqualified"
             elementFormDefault="qualified"
-            version="1.0">
+            version="1.1">
 
    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
 
@@ -2982,6 +2982,13 @@
                      <xsd:annotation>
                         <xsd:documentation>
                            the prefix of the address to send dead messages to
+                        </xsd:documentation>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="1" minOccurs="0" name="expiry-address-auto-create" type="dead-letter-address-auto-create">
+                     <xsd:annotation>
+                        <xsd:documentation>
+                           the prefix of the address to send expired messages to
                         </xsd:documentation>
                      </xsd:annotation>
                   </xsd:element>
