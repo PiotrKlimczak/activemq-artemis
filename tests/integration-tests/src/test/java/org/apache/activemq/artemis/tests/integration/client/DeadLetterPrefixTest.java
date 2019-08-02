@@ -101,10 +101,7 @@ public class DeadLetterPrefixTest extends Assert {
       session.commit();
 
       Assert.assertTrue(Wait.waitFor(() -> embeddedActiveMQ.getActiveMQServer().locateQueue(new SimpleString("q1")).getMessagesExpired() == 1, 2000, 100));
-
-      Thread.sleep(1000);
-
-//      assertEquals("Test content", getNextMessage(factory, "q1", true));
+      Assert.assertTrue(Wait.waitFor(() -> embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLEA.a1")) != null, 2000, 1000));
       assertNotNull(embeddedActiveMQ.getActiveMQServer().getAddressInfo(new SimpleString("DLEA.a1")));
       assertEquals("Test content", getNextMessage(factory, "DLEA.q1", false));
       assertEquals(0, embeddedActiveMQ.getActiveMQServer().getTotalMessageCount());
